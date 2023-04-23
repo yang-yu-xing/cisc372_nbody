@@ -104,11 +104,11 @@ int main(int argc, char **argv)
 	#endif
 	for (t_now=0;t_now<DURATION;t_now+=INTERVAL){
 		compute();
-		#ifdef DEBUG
-		printSystem(stdout);
-		#endif
 	}
 	clock_t t1=clock()-t0;
+#ifdef DEBUG
+	printSystem(stdout);
+#endif
 	printf("This took a total time of %f seconds\n",(double)t1/CLOCKS_PER_SEC);
 
 	freeHostMemory();
