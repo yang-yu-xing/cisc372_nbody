@@ -5,11 +5,11 @@
 #include <cuda_runtime.h>
 
 __global__ void parallel(vector3 *hPos, vector3 *accels, double *mass){
-	int col = (blockDim.x * blockIdx.x) + threadIdx.x;
+	int column = (blockDim.x * blockIdx.x) + threadIdx.x;
 	int row = (blockDim.y * blockIdx.y) + threadIdx.y;
-	int ind = (NUMENTITIES * row) + col; 
+	int ind = (NUMENTITIES * row) + column; 
 	int i = row; 
-	int j = col; 
+	int j = column; 
 	if(ind < NUMENTITIES * NUMENTITIES){
 		if (i == j){
 			FILL_VECTOR(accels[ind], 0, 0, 0);
@@ -18,10 +18,10 @@ __global__ void parallel(vector3 *hPos, vector3 *accels, double *mass){
 			for (int k = 0; k < 3; k++){
 				dist[k] = hPos[i][k] - hPos[j][k];
 			}
-			double mag_sq = dist[0] * dist[0] + dist[1] * dist[1] + dist[2] * dist[2];
-			double mag = sqrt(mag_sq);
-			double acc = -1 * GRAV_CONSTANT * mass[j] /mag_sq;
-			FILL_VECTOR(accels[ind], acc * dist[0] / mag, acc * dist[1] / mag, acc * dist[2]/ mag);
+			double magnitude_sq = dist[0] * dist[0] + dist[1] * dist[1] + dist[2] * dist[2];
+			double magnitude = sqrt(magnitude_sq);
+			double acc = -1 * GRAV_CONSTANT * mass[j] /magnitude_sq;
+			FILL_VECTOR(accels[ind], acc * dist[0] / magnitude, acc * dist[1] / magnitude, acc * dist[2]/ magnitude);
 		}
 	}
 } 
@@ -62,7 +62,7 @@ void compute(){
 	cudaMemcpy(dhVel, hVel, sizeof(vector3)*NUMENTITIES, cudaMemcpyHostToDevice);
 	cudaMemcpy(dmass, mass, sizeof(double)*NUMENTITIES, cudaMemcpyHostToDevice);
 	
-	pAccComp<<<gridDim, blockDim>>>(dhPos, dacc, dmass);
+	parallel<<<gridDim, blockDim>>>(dhPos, dacc, dmass);
 	cudaDeviceSynchronize();
 
 	sum<<<gridDim.x, blockDim.x>>>(dacc, dsum, dhPos, dhVel);
