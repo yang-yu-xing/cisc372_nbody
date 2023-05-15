@@ -25,3 +25,21 @@ __global__ void parallel(vector3 *hPos, vector3 *accels, double *mass){
 		}
 	}
 } 
+
+__global__ void sum(vector3 *accels, vector3 *accel_sum, vector3 *hPos, vector3 *hVel){
+	int row = blockIdx.x * blockDim.x + threadIdx.x;
+	int i = row;
+	if (i < NUMENTITIES){
+		FILL_VECTOR(accel_sum[i], 0, 0, 0);
+		for (int j = 0; j < NUMENTITIES; j++){
+			for (int k = 0; k < 3; k++){
+				accel_sum[i][k] += accels[(i * NUMENTITIES) + j][k];
+			}
+		}
+		for (int k = 0; k < 3; k++){
+			hVel[i][k] += accel_sum[i][k] * INTERVAL;
+			hPos[i][k] = hVel[i][k] * INTERVAL;
+		}
+
+	}
+}
